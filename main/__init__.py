@@ -657,11 +657,11 @@ def login():
 
         #checks ur lonin info
         if check_credentials(username, password):
-            # thorws you back to products [page if the login is correct
+            # thorws you back to products page if the login is correct
             return redirect(url_for('products'))
         else:
-            #this wil ldisplay an error if the login is wrong
-            error = 'login incorrect fu'
+            #this wil display an error if the login is wrong
+            error = 'Incorrect username/password. Try again.'
 
     return render_template('login.html', error=error)
 
@@ -681,7 +681,6 @@ def is_admin(username, password):
     # Woah uh I didn't want to write a good setup
     admin_usernames = ["admin1", "admin2"]  # Maybe you can fix it but as far as I'm concerned the code works
     return username in admin_usernames and is_valid_credentials(username, password)
-
 
 
 # Reads from a file
