@@ -15,9 +15,47 @@ app = Flask(__name__)
 def home():
     return render_template('home.html')
 
+# THIS IS FOR LINKING NAVBAR IN PRODUCT WEBSITE #
 @app.route('/products')
 def products():
     return render_template('products.html')
+
+
+@app.route('/living_room')
+def living_room():
+    return app.send_static_file('living_room.html')
+
+
+@app.route('/bedroom')
+def bedroom():
+    return app.send_static_file('bedroom.html')
+
+
+@app.route('/contact_us')
+def contact():
+    return app.send_static_file('contact_us.html')
+
+
+@app.route('/dining_room')
+def dining_room():
+    return app.send_static_file('dining_room.html')
+
+
+@app.route('/light')
+def light():
+    return app.send_static_file('light.html')
+
+
+@app.route('/office')
+def office():
+    return app.send_static_file('office.html')
+
+
+@app.route('/account')
+def account():
+    return app.send_static_file('account.html')
+
+# END OF LINKING NAVBAR #
 
 @app.route('/contactUs')
 def contact_us():
@@ -268,11 +306,16 @@ def update_furniture(id):
 
         furniture = furniture_dict.get(id)
         furniture.set_furniture_type(update_furniture_form.furniture_type.data)
-        furniture.set_furniture_quantity(update_furniture_form.furniture_quantity.data)
-        furniture.set_furniture_category(update_furniture_form.furniture_category.data)
-        furniture.set_furniture_status(update_furniture_form.furniture_status.data)
-        furniture.set_furniture_price(update_furniture_form.furniture_price.data)
-        furniture.set_furniture_remarks(update_furniture_form.furniture_remarks.data)
+        furniture.set_furniture_quantity(
+            update_furniture_form.furniture_quantity.data)
+        furniture.set_furniture_category(
+            update_furniture_form.furniture_category.data)
+        furniture.set_furniture_status(
+            update_furniture_form.furniture_status.data)
+        furniture.set_furniture_price(
+            update_furniture_form.furniture_price.data)
+        furniture.set_furniture_remarks(
+            update_furniture_form.furniture_remarks.data)
 
         db['Furniture'] = furniture_dict
         db.close()
@@ -306,7 +349,7 @@ def update_payment(id):
 
         payment = payment_dict.get(id)
         payment.set_first_name(update_payment_form.first_name.data)
-        payment.set_last_name(update_payment_form.last_name.data)        
+        payment.set_last_name(update_payment_form.last_name.data)
         payment.set_card_no(update_payment_form.card_no.data)
         payment.set_exp(update_payment_form.exp.data)
         payment.set_cvv(update_payment_form.cvv.data)
@@ -324,7 +367,7 @@ def update_payment(id):
 
         payment = payment_dict.get(id)
         update_payment_form.first_name.data = payment.get_first_name()
-        update_payment_form.last_name.data = payment.get_last_name()        
+        update_payment_form.last_name.data = payment.get_last_name()
         update_payment_form.card_no.data = payment.get_card_no()
         update_payment_form.exp.data = payment.get_exp()
         update_payment_form.cvv.data = payment.get_cvv()
@@ -482,10 +525,10 @@ def create_report():
         except:
             print("Error in submiting report")
 
-        report = Report.Report(form.email.data, form.issue.data, form.remarks.data)
+        report = Report.Report(
+            form.email.data, form.issue.data, form.remarks.data)
         report_dict[report.get_report_id()] = report
         db['Report'] = report_dict
-
 
         db.close()
 

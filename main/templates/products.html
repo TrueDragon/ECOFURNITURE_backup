@@ -468,7 +468,7 @@
         }
       }
     </style>
-    <title>EcoFurniture | Products</title>
+    <title>{% block title %}EcoFurniture | Products {% endblock %}</title>
   </head>
   <body>
     <div class="section__container logo__header">
@@ -479,23 +479,26 @@
       </div>
     </div>
     <nav>
+      {% block navbar %}
       <div class="section__container nav__links">
-        <span><a href="products.html">HOME</a></span>
-        <span><a href="living_room.html">LIVING ROOM</a></span>
-        <span><a href="dining_room.html">DINING ROOM</a></span>
-        <span><a href="office.html">OFFICE</a></span>
-        <span><a href="bedroom.html">BEDROOM</a></span>
-        <span><a href="light.html">LIGHT</a></span>
-        <span><a href="contact_us.html">CONTACT US</a></span>
-        <span><a href="account.html">ACCOUNT</a></span>
+        <span><a href="/products">HOME</a></span>
+        <span><a href="/living_room">LIVING ROOM</a></span>
+        <span><a href="/dining_room">DINING ROOM</a></span>
+        <span><a href="/office">OFFICE</a></span>
+        <span><a href="/bedroom">BEDROOM</a></span>
+        <span><a href="/light">LIGHT</a></span>
+        <span><a href="/contact_us">CONTACT US</a></span>
+        <span><a href="/account">ACCOUNT</a></span>
         <span>
           <a href="#">
             <i class="ri-shopping-cart-2-line"></i>
           </a>
         </span>
       </div>
+      {% endblock %}
     </nav>
     <header>
+      {% block content %}
       <div class="section__container header__container">
         <p>Limited Edition</p>
         <h1>REFURBISHED</h1>
@@ -759,5 +762,6 @@
         Copyright &#169; 2023 EcoFurniture. All rights reserved.
       </div>
     </footer>
+    {% endblock %}
   </body>
 </html>
