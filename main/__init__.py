@@ -1,25 +1,42 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 from Forms import CreateUserForm, CreateCustomerForm, CreateFurnitureForm, PaymentForm, ReportForm, OrderForm
-import shelve
-import User
-import Customer
-import Furniture
-import Pay
-import Order
-import Report
+import shelve, User, Customer, Furniture, Pay, Order, Report, os
+
+
+
 
 app = Flask(__name__)
+#just some security
+app.secret_key = os.urandom(24)
+# this makes sure files exist
 
+
+def existence(filename):
+    if not os.path.exists(filename):
+        with open(filename, "w"):
+            pass  # Just create an empty file if it doesn't exist
+
+def get_admins():
+    admins = {}
+    with open('adminslogin.txt', 'r') as file:
+        for line in file:
+            if 'Username:' in line and 'Password:' in line:
+                parts = line.strip().split(', ')
+                username = parts[0].split(': ')[1]
+                password = parts[1].split(': ')[1]
+                admins[username] = password
+    return admins
 
 @app.route('/')
-def home():
+def default():
     return render_template('home.html')
 
-# THIS IS FOR LINKING NAVBAR IN PRODUCT WEBSITE #
+
 @app.route('/products')
 def products():
     return render_template('products.html')
 
+# THIS IS FOR LINKING NAVBAR IN PRODUCT WEBSITE #
 
 @app.route('/living_room')
 def living_room():
@@ -57,10 +74,17 @@ def account():
 
 # END OF LINKING NAVBAR #
 
+
 @app.route('/contactUs')
 def contact_us():
     return render_template('contactUs.html')
 
+
+#this is set to a temp admin page
+@app.route('/home')
+def home():
+    admins = get_admins()
+    return render_template('home.html', admins=admins)
 
 @app.route('/createUser', methods=['GET', 'POST'])
 def create_user():
@@ -306,16 +330,11 @@ def update_furniture(id):
 
         furniture = furniture_dict.get(id)
         furniture.set_furniture_type(update_furniture_form.furniture_type.data)
-        furniture.set_furniture_quantity(
-            update_furniture_form.furniture_quantity.data)
-        furniture.set_furniture_category(
-            update_furniture_form.furniture_category.data)
-        furniture.set_furniture_status(
-            update_furniture_form.furniture_status.data)
-        furniture.set_furniture_price(
-            update_furniture_form.furniture_price.data)
-        furniture.set_furniture_remarks(
-            update_furniture_form.furniture_remarks.data)
+        furniture.set_furniture_quantity(update_furniture_form.furniture_quantity.data)
+        furniture.set_furniture_category(update_furniture_form.furniture_category.data)
+        furniture.set_furniture_status(update_furniture_form.furniture_status.data)
+        furniture.set_furniture_price(update_furniture_form.furniture_price.data)
+        furniture.set_furniture_remarks(update_furniture_form.furniture_remarks.data)
 
         db['Furniture'] = furniture_dict
         db.close()
@@ -525,10 +544,10 @@ def create_report():
         except:
             print("Error in submiting report")
 
-        report = Report.Report(
-            form.email.data, form.issue.data, form.remarks.data)
+        report = Report.Report(form.email.data, form.issue.data, form.remarks.data)
         report_dict[report.get_report_id()] = report
         db['Report'] = report_dict
+
 
         db.close()
 
@@ -596,6 +615,412 @@ def update_report(id):
 
         return render_template('updatereport.html', form=Update_Report_Form)
 
+'''
+def login():
+    create_customer_form = CreateCustomerForm(request.form)
+    if request.method == 'POST' and create_customer_form.validate():
+        customers_dict = {}
+        db = shelve.open('customer.db', 'c')
+
+        try:
+            customers_dict = db['Customers']
+        except:
+            print("Error in retrieving Customers from customer.db.")
+
+        customer = Customer.Customer(create_customer_form.first_name.data, create_customer_form.last_name.data,
+                                     create_customer_form.gender.data, create_customer_form.membership.data,
+                                     create_customer_form.remarks.data, create_customer_form.email.data,
+                                     create_customer_form.date_joined.data, create_customer_form.address.data)
+# customers_dict[customer.get_customer_id()] = customer
+        customers_dict[customer.get_user_id()] = customer
+        db['Customers'] = customers_dict
+
+        db.close()
+
+        return redirect(url_for('retrieve_customers'))
+    return render_template('createCustomer.html', form=create_customer_form)
+'''
+
+#hehe screw using a database
+
+#from here is humons code please refactor as you see fit
+
+#this one is an important function do not delete this make sure you refactor my code properly if you chan
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        #checks ur lonin info
+        if check_credentials(username, password):
+            # thorws you back to products [page if the login is correct
+            return redirect(url_for('products'))
+        else:
+            #this wil ldisplay an error if the login is wrong
+            error = 'login incorrect fu'
+
+    return render_template('login.html', error=error)
+
+
+def check_credentials(username, password):
+    #reads the file to make sure its good
+    with open('customercredentials.txt', 'r') as file:
+        for line in file:
+            stored_username, stored_password = line.strip().split(':')
+            if username == stored_username and password == stored_password:
+                return True
+    return False
+
+
+# it because this function is very important
+def is_admin(username, password):
+    # Woah uh I didn't want to write a good setup
+    admin_usernames = ["admin1", "admin2"]  # Maybe you can fix it but as far as I'm concerned the code works
+    return username in admin_usernames and is_valid_credentials(username, password)
+
+
+
+# Reads from a file
+def read_credentials_file(filename):
+    existence(filename)
+    with open(filename, "r") as file:
+        return file.readlines()
+#this one writes both user and admin you should refactor this if you do not want it
+    
+
+def write_credentials(filename, username, password, is_admin=False):
+    with open(filename, "a+") as file:
+        if is_admin:
+            file.write(f"Username: {username}, Password: {password}\n")
+        else:
+            file.write(f"Username: {username}, Password: {password}\n")
+#this deletes from the logins file a bit messy but who cares
+            
+
+def delete_credentials(filename, credentials):
+    with open(filename, "r") as file:
+        lines = file.readlines()
+    with open(filename, "w") as file:
+        for line in lines:
+            if not any(cred.strip() in line.strip() for cred in credentials):
+                file.write(line)
+
+
+# these two functions basically have the same function but its for different users (very uncompact and trash but whatever)
+def is_admin_username(username):
+    filename = "adminslogin.txt"
+    existence(filename)
+    with open(filename, "r") as file:
+        for line in file:
+            parts = line.strip().split(", ")
+            if len(parts) > 0 and username == parts[0].split(":")[1].strip():
+                return True
+    return False
+
+
+def is_username_existing(username):
+    filename = "login_details.txt"
+    existence(filename)
+    with open(filename, "r") as file:
+        for line in file:
+            parts = line.strip().split(", ")
+            if len(parts) > 0 and len(parts[0].split(":")) > 1 and username == parts[0].split(":")[1].strip():
+                return True
+    return False
+
+
+#this checks if the login is correct by comparing it to the saved logins files on the server or your computer
+def is_valid_credentials(username, password):
+    login_filename = "login_details.txt"
+    admin_filename = "adminslogin.txt"
+
+    # this one checks if you are just a normal customer by running through the login_file which is set for customers
+    with open(login_filename, "r") as login_file:
+        for line in login_file:
+            parts = line.strip().split(", ")
+            if len(parts) > 1 and username == parts[0].split(":")[1].strip() and password == parts[1].split(":")[
+                1].strip():
+                return True
+
+    #and this one checks if its an admin login
+    with open(admin_filename, "r") as admin_file:
+        for line in admin_file:
+            parts = line.strip().split(", ")
+            if len(parts) > 1 and username == parts[0].split(":")[1].strip() and password == parts[1].split(":")[
+                1].strip():
+                return True
+
+    return False
+
+
+#this is for the login stuff
+def login():
+    error = None
+
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        # This is extremely insecure, but why is it staying? it just is, don't ask me why because I don't remember
+        if is_valid_credentials(username, password):
+            # Checks if it's an admin login
+            if is_admin(username, password):
+                session['username'] = username
+                return redirect(url_for('home'))
+            else:
+                session['username'] = username
+                return redirect(url_for('home'))
+        else:
+            error = "Invalid username or password. Please try again."
+
+    return render_template('login.html', error=error)
+
+
+#wow its useless!
+
+@app.route('/view_admin_logins')
+def view_admin_logins():
+    username = request.args.get('username')
+    password = request.args.get('password')
+
+    # Check if admin credentials
+    if is_admin(username, password):
+        return redirect(url_for('home'))
+
+    admin_logins = read_credentials_file("adminslogin.txt")
+    return render_template('view_admin_logins.html', admin_logins=admin_logins)
+
+
+# this just checks if a username taken (again)
+def is_username_taken(username):
+    # This is just a fatass code
+    existing_usernames = read_credentials_file("login_details.txt")
+    return any(
+        len(parts) > 0 and len(parts[0].split(":")) > 1 and username == parts[0].split(":")[1].strip() for line in
+        existing_usernames for parts in [line.strip().split(", ")])
+
+
+# This is used for registration
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    error = None
+
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        # Check if it's taken
+        if is_username_taken(username) or is_admin_username(username):
+            error = "Username is already taken. Please choose another."
+
+        # Check if it's taken, again
+        elif is_username_existing(username):
+            error = "Username already exists. Please choose another."
+
+        # You need a password
+        elif not password:
+            error = "Password cannot be empty. Please enter a password."
+
+        else:
+            # Saves to file
+            write_credentials("customercredentials.txt", username, password)
+
+            # Set user as logged in
+            session['username'] = username
+
+            # And redirection
+            return redirect(url_for('login'))
+
+    return render_template('register.html', error=error)
+
+
+def write_credentials(filename, username, password):
+    #adds new login info to customercredentials.txt
+    with open(filename, 'a') as file:
+        file.write(f"{username}:{password}\n")
+def read_admins_from_file():
+    admins = {}
+    with open('adminslogin.txt', 'r') as file:
+        for line in file:
+            username, password = line.strip().split(', ')
+            admins[username] = password
+    return admins
+
+
+def is_admin_username_taken(username):
+    filename = "adminslogin.txt"
+    existence(filename)
+    with open(filename, "r") as file:
+        for line in file:
+            parts = line.strip().split(", ")
+            if len(parts) > 0 and username == parts[0].split(":")[1].strip():
+                return True
+    return False
+
+
+    # writes logins
+def write_admins_to_file(admins):
+    with open('adminslogin.txt', 'w') as file:
+        for username, password in admins.items():
+            file.write(f'Username: {username}, Password: {password}\n')
+
+
+    #routing
+
+# YEETUS DELETUS FIREUS
+
+# check if this is an admin
+def is_admin(username, password):
+    #looks like my code is shit
+    admin_usernames = ["admin1", "admin2"]  # you could fix it but it works so it works smh
+    return username in admin_usernames and is_valid_credentials(username, password)
+
+
+#more username checks?
+def is_username_taken(username):
+    # This is just a fatass code
+    existing_usernames = read_credentials_file("login_details.txt")
+    return any(
+        len(parts) > 0 and len(parts[0].split(":")) > 1 and username == parts[0].split(":")[1].strip() for line in
+        existing_usernames for parts in [line.strip().split(", ")])
+# this just shows the admin logins/credentials
+
+
+def view_admin_logins():
+    username = request.args.get('username')
+    password = request.args.get('password')
+
+    #chgeck if iuts an admins credentials
+    if is_admin(username, password):
+        return redirect(url_for('home'))
+
+    admin_logins = read_credentials_file("adminslogin.txt")
+    return render_template('home.html', admin_logins=admin_logins)
+
+
+#bandaid fix
+def create_missing_files():
+    admin_file = 'adminslogin.txt'
+    customer_file = 'customercredentials.txt'
+
+    if not os.path.isfile(admin_file):
+        with open(admin_file, 'w') as file:
+            file.write('')
+    if not os.path.isfile(customer_file):
+        with open(customer_file, 'w') as file:
+            file.write('')
+
+
+# this function is here to create files if they are missing call it an integrity check if you want
+create_missing_files()
+# i know the code sucks
+def is_admin(username, password):
+    filename = "adminslogin.txt"
+    existence(filename)
+    with open(filename, "r") as file:
+        for line in file:
+            parts = line.strip().split(", ")
+            if len(parts) > 1 and username == parts[0].split(":")[1].strip() and password == parts[1].split(":")[
+                1].strip():
+                return True
+    return False
+
+
+def get_admin_credentials():
+    credentials_list = []
+    try:
+        with open("adminslogin.txt", 'r') as file:
+            lines = file.readlines()
+            for line in lines:
+                username, password = map(str.strip, line.split(':'))
+                credentials_list.append({'username': username, 'password': password})
+    except FileNotFoundError:
+        # gandle the case where the file is not found
+        pass
+
+    return credentials_list
+
+
+def read_admins_from_file():
+    admins = []
+    with open('adminslogin.txt', 'r') as file:
+        admins = [line.strip() for line in file]
+    return admins
+
+
+def write_admin_to_file(username, password):
+    with open('adminslogin.txt', 'a') as file:
+        file.write(f'Username: {username}, Password: {password}\n')
+
+
+@app.route('/admin', methods=['GET', 'POST'])
+def admin():
+    error = None
+    admins = get_admins()
+
+    if request.method == 'POST':
+        new_username = request.form['new_username']
+        new_password = request.form['new_password']
+
+        if new_username in admins:
+            error = 'Username already exists.'
+        else:
+            admins[new_username] = new_password
+            #update the file with the new admin credentials
+            with open('adminslogin.txt', 'a') as file:
+                file.write(f"Username: {new_username}, Password: {new_password}\n")
+
+    return render_template('home.html', admins=admins, error=error)
+
+
+@app.route('/admin/delete', methods=['POST'])
+def admin_delete():
+    admins = get_admins()
+    delete_admin = request.form.get('delete_admin')
+
+    if delete_admin in admins:
+        del admins[delete_admin]
+        #update the file without the deleted admin credentials
+        with open('adminslogin.txt', 'w') as file:
+            for username, password in admins.items():
+                file.write(f"Username: {username}, Password: {password}\n")
+
+    return redirect(url_for('admin'))
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
+
+#duplicate checker
+def is_duplicate_username(username, admins):
+    return username in admins
+#edits the file
+@app.route('/admin/edit', methods=['POST'])
+def admin_edit():
+    print(request.form)  # print the form data for debugging
+    error = None
+    if request.method == 'POST':
+        new_username = request.form['new_username']
+        new_password = request.form['new_password']
+
+        admins = get_admins()
+
+        if is_duplicate_username(new_username, admins):
+            error = f"Username '{new_username}' already exists. Please choose a different username."
+        else:
+            admins[new_username] = new_password
+            write_admins_to_file(admins)
+
+    return redirect(url_for('admin', error=error))
+
+# signs you out
+@app.route('/signout')
+def signout():
+    session.pop('username', None)
+    return redirect(url_for('home'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
