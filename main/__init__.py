@@ -657,6 +657,7 @@ def login():
         #checks ur lonin info
         if check_credentials(username, password):
             # thorws you back to products page if the login is correct
+            session['username'] = username
             return redirect(url_for('products'))
         else:
             #this wil display an error if the login is wrong
@@ -794,12 +795,15 @@ def view_admin_logins():
 
 
 # this just checks if a username taken (again)
-def is_username_taken(username):
-    # This is just a fatass code
-    existing_usernames = read_credentials_file("login_details.txt")
-    return any(
-        len(parts) > 0 and len(parts[0].split(":")) > 1 and username == parts[0].split(":")[1].strip() for line in
-        existing_usernames for parts in [line.strip().split(", ")])
+def is_customer_username_taken(username):
+    filename = "customercredentials.txt"
+    existence(filename)
+    with open(filename, "r") as file:
+        for line in file:
+            parts = line.strip().split(", ")
+            if len(parts) > 0 and username == parts[0].split(":")[1].strip():
+                return True
+    return False
 
 
 # This is used for registration
@@ -816,7 +820,7 @@ def register():
             error = "Username is already taken. Please choose another."
 
         # Check if it's taken, again
-        elif is_username_existing(username):
+        elif is_username_existing(username) or is_customer_username_taken(username):
             error = "Username already exists. Please choose another."
 
         # You need a password

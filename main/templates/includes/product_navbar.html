@@ -148,6 +148,7 @@
   .header__container button:hover {
     background-color: var(--primary-color-dark);
   }
+
 </style>
 <div class="section__container nav__links">
   <span><a href="{{ url_for('products') }}">HOME</a></span>
@@ -157,6 +158,7 @@
   <span><a href="{{ url_for('bedroom') }}">BEDROOM</a></span>
   <span><a href="{{ url_for('light') }}">LIGHT</a></span>
   <span><a href="{{ url_for('contact_us') }}">CONTACT US</a></span>
+  
   {% if 'username' in session %}
   <span><a href="{{ url_for('account') }}">ACCOUNT</a></span>
   {% else %}
