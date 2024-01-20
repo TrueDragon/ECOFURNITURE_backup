@@ -40,40 +40,39 @@ def products():
 
 @app.route('/living_room')
 def living_room():
-    return app.send_static_file('living_room.html')
+    return render_template('living_room.html')
 
 
 @app.route('/bedroom')
 def bedroom():
-    return app.send_static_file('bedroom.html')
+    return render_template('bedroom.html')
 
 
 @app.route('/contact_us')
 def contact():
-    return app.send_static_file('contact_us.html')
+    return render_template('contact_us.html')
 
 
 @app.route('/dining_room')
 def dining_room():
-    return app.send_static_file('dining_room.html')
+    return render_template('dining_room.html')
 
 
 @app.route('/light')
 def light():
-    return app.send_static_file('light.html')
+    return render_template('light.html')
 
 
 @app.route('/office')
 def office():
-    return app.send_static_file('office.html')
+    return render_template('office.html')
 
 
 @app.route('/account')
 def account():
-    return app.send_static_file('account.html')
+    return render_template('account.html')
 
 # END OF LINKING NAVBAR #
-
 
 @app.route('/contactUs')
 def contact_us():

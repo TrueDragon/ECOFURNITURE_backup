@@ -479,22 +479,7 @@
       </div>
     </div>
     <nav>
-      <div class="section__container nav__links">
-        <span><a href="/products">HOME</a></span>
-        <span><a href="/living_room">LIVING ROOM</a></span>
-        <span><a href="/dining_room">DINING ROOM</a></span>
-        <span><a href="/office">OFFICE</a></span>
-        <span><a href="/bedroom">BEDROOM</a></span>
-        <span><a href="/light">LIGHT</a></span>
-        <span><a href="/contact_us">CONTACT US</a></span>
-        <span><a href="/account">ACCOUNT</a></span>
-        <span><a href="login">LOGIN</a></span>
-        <span>
-          <a href="#">
-            <i class="ri-shopping-cart-2-line"></i>
-          </a>
-        </span>
-      </div>
+      {% block navbar %} {% include 'includes/product_navbar.html' %} {% endblock %}
     </nav>
     <header>
       <div class="section__container header__container">
